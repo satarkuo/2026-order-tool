@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>公司內部點餐工具</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="all.css" />
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Google API Client -->
+    <script src="https://apis.google.com/js/api.js"></script>
+  </head>
+
+  <body>
+    <!-- 登入區塊 (滿版) -->
+    <section id="login-section" class="fullscreen-login">
+      <div class="card login-card">
+        <h2 class="mb-2">🥗 公司點餐系統</h2>
+        <p class="text-secondary mb-4">使用公司 Google 帳號登入系統</p>
+        <button id="custom-login-btn" class="custom-google-btn">
+          <span class="icon"></span>
+          <span class="text">使用 Google 帳號登入</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 載入中 / 狀態提示 (全畫面覆蓋) -->
+    <section id="status-section" class="fullscreen-loader hidden">
+      <div class="loader"></div>
+      <p id="status-text">載入中...</p>
+    </section>
+
+    <!-- 主應用程式區塊 (雙欄佈局) -->
+    <div id="app-layout" class="hidden">
+      <!-- 手機版頂部 Header (只在小螢幕顯示) -->
+      <header class="mobile-header">
+        <h2>🥗 點餐系統</h2>
+        <button id="hamburger-btn" class="hamburger-btn" aria-label="選單">
+          <span></span><span></span><span></span>
+        </button>
+      </header>
+
+      <!-- 手機版 Sidebar 遮罩 -->
+      <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+      <!-- 左側選單 -->
+      <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+          <h2>🥗 點餐系統</h2>
+        </div>
+
+        <div id="user-info" class="user-profile">
+          <img src="admin_avatar.png" class="avatar-img" alt="管理員頭像" />
+          <div class="user-details">
+            <span id="user-name" class="name"></span>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <button class="nav-btn active" data-target="view-menu">
+            🍽️ 今日餐點
+          </button>
+          <button class="nav-btn" data-target="view-orders" id="nav-btn-orders">
+            📋 訂單列表
+          </button>
+          <!-- 管理員專屬項目 -->
+          <button
+            class="nav-btn hidden"
+            data-target="view-admin"
+            id="nav-btn-admin"
+          >
+            👑 管理員設定
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <button id="sign-out-btn" class="btn btn-outline btn-full">
+            登出
+          </button>
+        </div>
+      </aside>
+
+      <!-- 右側主要內容區 -->
+      <main id="main-content" class="main-content">
+        <!-- ====== 視圖 1: 今日菜單 ====== -->
+        <section id="view-menu" class="view-item">
+          <header class="view-header">
+            <h2>
+              📅 今日開放菜單
+              <span
+                id="today-restaurants"
+                class="text-secondary text-sm"
+              ></span>
+            </h2>
+            <!-- 分類/主題切換 Tabs -->
+            <div id="category-tabs" class="tabs-container mt-3">
+              <button class="tab-btn active" data-filter="all">
+                🌟 全部主題
+              </button>
+              <!-- JS 動態生成 -->
+            </div>
+          </header>
+          <div id="menu-container" class="grid-container">
+            <!-- JS 生成餐點 -->
+          </div>
+        </section>
+
+        <!-- ====== 視圖 2: 訂單列表 (整合舊的 Modal) ====== -->
+        <section id="view-orders" class="view-item hidden">
+          <header class="view-header d-flex justify-between align-center">
+            <h2>📋 今日所有訂單</h2>
+            <button id="btn-copy-orders" class="btn btn-success">
+              複製訂單供 Line 使用
+            </button>
+          </header>
+
+          <div class="card table-card">
+            <!-- 手機版卡片列表 -->
+            <div id="orders-cards"></div>
+            <!-- 桌機版表格 -->
+            <div class="table-wrapper">
+              <table id="orders-table">
+                <thead>
+                  <tr>
+                    <th>時間</th>
+                    <th>訂購人</th>
+                    <th>餐廳</th>
+                    <th>餐點</th>
+                    <th>金額</th>
+                    <th>備註</th>
+                  </tr>
+                </thead>
+                <tbody id="orders-list">
+                  <!-- JS 動態生成 -->
+                  <tr>
+                    <td colspan="6" class="text-center py-4">
+                      請稍候，載入中...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-footer mt-4 justify-end d-flex">
+              <h3 class="total-price-display">
+                總金額:
+                <span class="text-primary"
+                  >$<span id="total-amount">0</span></span
+                >
+              </h3>
+            </div>
+          </div>
+        </section>
+
+        <!-- ====== 視圖 3: 管理員設定 ====== -->
+        <section id="view-admin" class="view-item hidden">
+          <header class="view-header">
+            <h2>👑 管理員控制面板</h2>
+          </header>
+
+          <div class="grid-container config-grid">
+            <div class="card">
+              <h3>設定今日開放餐廳</h3>
+              <p class="text-secondary mb-3">請勾選開放點餐的餐廳並儲存：</p>
+              <button id="btn-open-config" class="btn btn-outline mb-3">
+                📍 載入可選餐廳列表
+              </button>
+
+              <div id="admin-config-panel" class="hidden">
+                <div id="restaurant-checkboxes" class="checkbox-group">
+                  <!-- JS 動態生成 -->
+                </div>
+                <button
+                  id="btn-save-config"
+                  class="btn btn-primary mt-3 btn-full"
+                >
+                  送出並儲存設定
+                </button>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>菜單資料同步</h3>
+              <p class="text-secondary mb-3">
+                將程式碼內的菜單資料覆寫同步至 Google Sheet 的 Menu 分頁。
+              </p>
+              <button id="btn-sync-menu" class="btn btn-primary btn-full">
+                🔄 同步 JS 菜單 → Google Sheet
+              </button>
+            </div>
+
+            <div class="card border-danger">
+              <h3 class="text-danger">危險操作區</h3>
+              <p class="text-secondary mb-3">
+                這將會清除資料庫中今日所有的點餐記錄，請謹慎使用。
+              </p>
+              <button
+                id="btn-clear-orders"
+                class="btn btn-danger btn-full mt-auto"
+              >
+                ⚠️ 清空今日所有點餐
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="all.js"></script>
+  </body>
+</html>
